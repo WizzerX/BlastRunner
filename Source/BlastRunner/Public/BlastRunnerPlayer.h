@@ -28,7 +28,12 @@ UStaticMeshComponent* PlayerMesh;
 UPROPERTY(EditAnywhere,BlueprintReadWrite)
 class USpringArmComponent* SpringArm;
 
+UPROPERTY(EditAnywhere, BlueprintReadWrite)
+class UWidgetComponent* TimeProgress;
 
+
+
+class UBlastRunnerWidget* BlastRunnerWidget;
 
 
 protected:
@@ -46,5 +51,17 @@ public:
 	void MoveRight(float Axis);
 
 
+	float TimeLeft = 0.0;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USoundBase* ExploadeSound;
+
+
+public:
+
+	void TimeExploader();
+
+	FTimerHandle BlastTimer;
 
 };

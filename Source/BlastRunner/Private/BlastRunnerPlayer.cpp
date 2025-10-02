@@ -6,6 +6,10 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/FloatingPawnMovement.h"
+#include "Components/WidgetComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "BlastRunner/Public/BlastRunnerWidget.h"
+
 // Sets default values
 ABlastRunnerPlayer::ABlastRunnerPlayer()
 {
@@ -28,7 +32,8 @@ ABlastRunnerPlayer::ABlastRunnerPlayer()
 	Camera->SetupAttachment(SpringArm);
 
 
-
+	TimeProgress = CreateDefaultSubobject<UWidgetComponent>(TEXT("Widget"));
+	TimeProgress->SetupAttachment(PlayerMesh);
 
 
 
@@ -40,6 +45,9 @@ ABlastRunnerPlayer::ABlastRunnerPlayer()
 void ABlastRunnerPlayer::BeginPlay()
 {
 	Super::BeginPlay();
+
+
+	GetWorld()->GetTimerManager().SetTimer(BlastTimer, this, &ABlastRunnerPlayer::TimeExploader, 1, true, 1.f);
 	
 }
 
@@ -70,7 +78,7 @@ void ABlastRunnerPlayer::MoveForward(float Axis)
 
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 		AddMovementInput(Direction, Axis);
-		UE_LOG(LogTemp, Warning, TEXT("MoveForward"));
+	
 
 	}
 
@@ -82,7 +90,7 @@ void ABlastRunnerPlayer::MoveRight(float Axis)
 {
 	if (Controller != nullptr && Axis != 0.0f)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("MoveRight"));
+		
 		const FRotator PlayerRotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0.0f, PlayerRotation.Yaw, 0.0f);
 
@@ -91,6 +99,51 @@ void ABlastRunnerPlayer::MoveRight(float Axis)
 
 
 	}
+
+
+}
+
+void ABlastRunnerPlayer::TimeExploader()
+{
+	BlastRunnerWidget = Cast<UBlastRunnerWidget>(TimeProgress->GetUserWidgetObject());
+	
+	if (TimeLeft >= 3.7f)
+	{
+		UGameplayStatics::PlaySound2D(GetWorld(), ExploadeSound);
+		TimeLeft = 0.0f;
+
+
+
+
+
+	}
+
+
+		TimeLeft = FMath::Clamp(TimeLeft+=.3f, 0.0f, 5.f);
+		float percentage = TimeLeft / 5.f;
+		if (BlastRunnerWidget)
+		{
+			BlastRunnerWidget->UpdateUI(percentage);
+			GEngine->AddOnScreenDebugMessage(1, 3, FColor::Purple, FString("PROGRESS UPDATED!"));
+
+			
+
+
+
+
+
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(1, 3, FColor::Purple, FString("Cast Failed!"));
+		
+		}
+
+
+
+
+	
+
 
 
 }
