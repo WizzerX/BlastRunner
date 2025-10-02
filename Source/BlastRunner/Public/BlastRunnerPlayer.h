@@ -22,7 +22,7 @@ UPROPERTY(EditAnywhere, BlueprintReadWrite)
 class UFloatingPawnMovement* MovementComponent;
 
 
-UPROPERTY(EditAnywhere, BlueprintReadWrite)
+UPROPERTY(EditAnywhere, Category = "Visual")
 UStaticMeshComponent* PlayerMesh;
 
 UPROPERTY(EditAnywhere,BlueprintReadWrite)
@@ -31,7 +31,8 @@ class USpringArmComponent* SpringArm;
 UPROPERTY(EditAnywhere, BlueprintReadWrite)
 class UWidgetComponent* TimeProgress;
 
-
+UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+class UCapsuleComponent* CapsuleComponent;
 
 class UBlastRunnerWidget* BlastRunnerWidget;
 

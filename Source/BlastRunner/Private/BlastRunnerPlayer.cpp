@@ -9,7 +9,7 @@
 #include "Components/WidgetComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "BlastRunner/Public/BlastRunnerWidget.h"
-
+#include "Components/CapsuleComponent.h"
 // Sets default values
 ABlastRunnerPlayer::ABlastRunnerPlayer()
 {
@@ -17,14 +17,20 @@ ABlastRunnerPlayer::ABlastRunnerPlayer()
 	PrimaryActorTick.bCanEverTick = true;
 	
 
+
 	MovementComponent = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("MovementComponent"));
-	MovementComponent->UpdatedComponent = RootComponent;
 
 
 
 	PlayerMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayerMesh"));
-	PlayerMesh->SetupAttachment(RootComponent);
+	SetRootComponent(PlayerMesh);
 	
+
+	CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleComponent"));
+	CapsuleComponent->InitCapsuleSize(93.684525, 58.94849);
+	CapsuleComponent->SetupAttachment(RootComponent);
+
+
 	
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(PlayerMesh);

@@ -14,7 +14,17 @@ class BLASTRUNNER_API ABlastRunnerController : public APlayerController
 {
 	GENERATED_BODY()
 
+public:
+
+	
+class UScoreWidget* Widget;
+
+UPROPERTY(EditAnywhere, BlueprintReadWrite)
+TSubclassOf<UUserWidget>widgetclass;
 
 
+ABlastRunnerController();
+
+virtual void BeginPlay() override;
 	
 };
