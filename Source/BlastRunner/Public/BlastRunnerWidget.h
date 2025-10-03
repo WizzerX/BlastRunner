@@ -23,11 +23,16 @@ public:
 	class UProgressBar* TimeBomb;
 
 
+
+
 	virtual void NativeConstruct();
 
 	
 	void UpdateUI(float Value);
 
+	void MakeChargeToGreen();
+	void MakeChargeToYellow();
+	void MakeChargeToRed();
 
 	
 };

@@ -6,6 +6,19 @@
 #include "GameFramework/Pawn.h"
 #include "BlastRunnerPlayer.generated.h"
 
+UENUM(BlueprintType)
+enum class ERunnerState:uint8
+{
+	Green  UMETA(DisplayName = "GREEN"),
+	Yellow  UMETA(DisplayName = "YELLOW"),
+	Red  UMETA(DisplayName = "RED")
+
+};
+
+
+
+
+
 UCLASS()
 class BLASTRUNNER_API ABlastRunnerPlayer : public APawn
 {
@@ -50,19 +63,31 @@ public:
 
 	void MoveForward(float Axis);
 	void MoveRight(float Axis);
+	void Blast();
 
+	float ColorTimer = 0.0;
+	int BlastTime = 3;
 
-	float TimeLeft = 0.0;
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
+	ERunnerState RunnerState;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	USoundBase* ExploadeSound;
 
+
+	int SwitchTORed = 0;
 
 public:
 
 	void TimeExploader();
 
 	FTimerHandle BlastTimer;
+
+	float Life = 4.0;
+
+
+
+private:
+class 	ABlastRunnerController* CharacterController;
 
 };

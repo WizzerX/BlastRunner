@@ -11,6 +11,19 @@ ABlastRunnerController::ABlastRunnerController()
 
 }
 
+void ABlastRunnerController::UpdateHealth(float value)
+{
+	if (Widget)
+	{
+		Widget->UpdateHealth(value);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CAST FAILED"));
+	}
+
+}
+
 void ABlastRunnerController::BeginPlay()
 {
 

@@ -10,6 +10,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "BlastRunner/Public/BlastRunnerWidget.h"
 #include "Components/CapsuleComponent.h"
+#include "BlastRunner/Public/BlastRunnerController.h"
 // Sets default values
 ABlastRunnerPlayer::ABlastRunnerPlayer()
 {
@@ -41,21 +42,29 @@ ABlastRunnerPlayer::ABlastRunnerPlayer()
 	TimeProgress = CreateDefaultSubobject<UWidgetComponent>(TEXT("Widget"));
 	TimeProgress->SetupAttachment(PlayerMesh);
 
+	BlastRunnerWidget = Cast<UBlastRunnerWidget>(TimeProgress->GetUserWidgetObject());
+	
+	RunnerState = ERunnerState::Green;
 
 
-
-
+	
+	
 }
 
 // Called when the game starts or when spawned
 void ABlastRunnerPlayer::BeginPlay()
 {
 	Super::BeginPlay();
-
+	BlastRunnerWidget = Cast<UBlastRunnerWidget>(TimeProgress->GetUserWidgetObject());
 
 	GetWorld()->GetTimerManager().SetTimer(BlastTimer, this, &ABlastRunnerPlayer::TimeExploader, 1, true, 1.f);
 	
+	BlastRunnerWidget->MakeChargeToGreen();
+	CharacterController = Cast<ABlastRunnerController>(GetController());
 }
+
+
+
 
 // Called every frame
 void ABlastRunnerPlayer::Tick(float DeltaTime)
@@ -71,7 +80,7 @@ void ABlastRunnerPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &ABlastRunnerPlayer::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABlastRunnerPlayer::MoveRight);
-
+	PlayerInputComponent->BindAction("Blast",EInputEvent::IE_Pressed, this, &ABlastRunnerPlayer::Blast);
 }
 
 void ABlastRunnerPlayer::MoveForward(float Axis)
@@ -109,48 +118,64 @@ void ABlastRunnerPlayer::MoveRight(float Axis)
 
 }
 
-void ABlastRunnerPlayer::TimeExploader()
+void ABlastRunnerPlayer::Blast()
 {
-	BlastRunnerWidget = Cast<UBlastRunnerWidget>(TimeProgress->GetUserWidgetObject());
-	
-	if (TimeLeft >= 3.7f)
+
+
+	if (BlastRunnerWidget&& ColorTimer>=3.7f)
 	{
+
 		UGameplayStatics::PlaySound2D(GetWorld(), ExploadeSound);
-		TimeLeft = 0.0f;
-
-
-
-
+		ERunnerState::Green;
+		ColorTimer = 0.0;
+		SwitchTORed = 0;
 
 	}
 
-
-		TimeLeft = FMath::Clamp(TimeLeft+=.3f, 0.0f, 5.f);
-		float percentage = TimeLeft / 5.f;
-		if (BlastRunnerWidget)
-		{
-			BlastRunnerWidget->UpdateUI(percentage);
-			GEngine->AddOnScreenDebugMessage(1, 3, FColor::Purple, FString("PROGRESS UPDATED!"));
-
-			
-
-
-
-
-
-		}
-		else
-		{
-			GEngine->AddOnScreenDebugMessage(1, 3, FColor::Purple, FString("Cast Failed!"));
-		
-		}
-
-
-
-
 	
+}
+
+void ABlastRunnerPlayer::TimeExploader()
+{
+	if (SwitchTORed == 2)
+	{
+		BlastRunnerWidget->MakeChargeToRed();
+		//DO THE STUFF
+		SwitchTORed = 0;
+		UGameplayStatics::PlaySound2D(GetWorld(), ExploadeSound);
+		ColorTimer = 0.0;
+		ERunnerState::Green;
+		
+		
+		
+			Life = FMath::Clamp(Life-=1.f, 0.0f, 4.f);
+			float Percentage = Life / 4;
+			GEngine->AddOnScreenDebugMessage(1, 3, FColor::Red, FString("Fired the function!"));
+			if(CharacterController)
+			CharacterController->UpdateHealth(Percentage);
+		
 
 
+		return;
+	}
+
+
+	if (ColorTimer >= 3.7f)
+	{
+		BlastRunnerWidget->MakeChargeToYellow();
+		SwitchTORed = 2;
+		ERunnerState::Yellow;
+		return;
+	}
+
+
+	ColorTimer = FMath::Clamp(ColorTimer += .3f, 0.0f, 5.f);
+	BlastRunnerWidget->MakeChargeToGreen();
+	float percentage = ColorTimer / 5.f;
+	ERunnerState::Green;
+
+	BlastRunnerWidget->UpdateUI(percentage);
+	GEngine->AddOnScreenDebugMessage(1, 3, FColor::Purple, FString("PROGRESS UPDATED!"));
 
 }
 

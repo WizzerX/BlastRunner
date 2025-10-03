@@ -19,6 +19,10 @@ public:
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	class UTextBlock* Text;
 
+	UPROPERTY(meta = (BindWidget))
+	class UProgressBar* Health;
+
+	void UpdateHealth(float value);
 
 	
 };
