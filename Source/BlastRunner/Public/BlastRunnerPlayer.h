@@ -85,9 +85,10 @@ public:
 
 	float Life = 4.0;
 
-
+	void TakeDamage(float Value);
 
 private:
 class 	ABlastRunnerController* CharacterController;
 
+TArray<AActor*>ChosetheActor;
 };

@@ -11,6 +11,7 @@
 #include "BlastRunner/Public/BlastRunnerWidget.h"
 #include "Components/CapsuleComponent.h"
 #include "BlastRunner/Public/BlastRunnerController.h"
+#include "Kismet/KismetSystemLibrary.h"
 // Sets default values
 ABlastRunnerPlayer::ABlastRunnerPlayer()
 {
@@ -19,24 +20,40 @@ ABlastRunnerPlayer::ABlastRunnerPlayer()
 	
 
 
-	MovementComponent = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("MovementComponent"));
+
+	CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleComponent"));
+	CapsuleComponent->InitCapsuleSize(93.684525, 58.94849);
+	SetRootComponent(CapsuleComponent);
+
+	CapsuleComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	CapsuleComponent->SetCollisionObjectType(ECC_Pawn);
+	CapsuleComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block); // if TraceTypeQuery1 maps to Visibility
 
 
 
 	PlayerMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayerMesh"));
-	SetRootComponent(PlayerMesh);
-	
-
-	CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleComponent"));
-	CapsuleComponent->InitCapsuleSize(93.684525, 58.94849);
-	CapsuleComponent->SetupAttachment(RootComponent);
+	PlayerMesh->SetupAttachment(RootComponent);
+	PlayerMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 
-	
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(PlayerMesh);
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm);
+
+
+	MovementComponent = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("MovementComponent"));
+
+
+	
+	
+	
+
+	
+
+	
+	
+
 
 
 	TimeProgress = CreateDefaultSubobject<UWidgetComponent>(TEXT("Widget"));
@@ -121,16 +138,21 @@ void ABlastRunnerPlayer::MoveRight(float Axis)
 void ABlastRunnerPlayer::Blast()
 {
 
+	FHitResult HitResult;
+	//if (BlastRunnerWidget&& ColorTimer>=3.7f)
+	
+		UKismetSystemLibrary::SphereTraceSingle(GetWorld(),GetTargetLocation(this), GetTargetLocation(this) * 500.f, 500.f,
+			ETraceTypeQuery::TraceTypeQuery1, false, ChosetheActor, EDrawDebugTrace::ForDuration, HitResult, true);
+		
 
-	if (BlastRunnerWidget&& ColorTimer>=3.7f)
-	{
+
 
 		UGameplayStatics::PlaySound2D(GetWorld(), ExploadeSound);
 		ERunnerState::Green;
 		ColorTimer = 0.0;
 		SwitchTORed = 0;
 
-	}
+	
 
 	
 }
@@ -176,6 +198,19 @@ void ABlastRunnerPlayer::TimeExploader()
 
 	BlastRunnerWidget->UpdateUI(percentage);
 	GEngine->AddOnScreenDebugMessage(1, 3, FColor::Purple, FString("PROGRESS UPDATED!"));
+
+}
+
+
+void ABlastRunnerPlayer::TakeDamage(float Value)
+{
+
+	Life = FMath::Clamp(Life -= Value, 0.0f, 4.f);
+	float Percentage = Life / 4;
+	GEngine->AddOnScreenDebugMessage(1, 3, FColor::Red, FString("Fired the function!"));
+	if (CharacterController)
+		CharacterController->UpdateHealth(Percentage);
+
 
 }
 
