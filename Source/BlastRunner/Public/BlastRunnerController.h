@@ -22,12 +22,26 @@ ABlastRunnerController();
 public:
 void UpdateHealth(float value);
 
-
+void UpadateScore(int NewScore);
 
 class UScoreWidget* Widget;
 
+int DeathScore;
+
 UPROPERTY(EditAnywhere, BlueprintReadWrite)
 TSubclassOf<UUserWidget>widgetclass;
+
+
+UPROPERTY(EditAnywhere, BlueprintReadWrite)
+TSubclassOf<UUserWidget>DeathUIWidget;
+
+class UDeathScreen* DeathWidget;
+
+void DeathUI();
+
+
+UFUNCTION(BlueprintCallable)
+void RestartGame();
 
 virtual void BeginPlay() override;
 	

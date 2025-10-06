@@ -12,6 +12,15 @@
 #include "Components/CapsuleComponent.h"
 #include "BlastRunner/Public/BlastRunnerController.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "BlastRunner/Public/BlastRunnerEnenmyBasic.h"
+#include "DrawDebugHelpers.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
+#include "D:/UE_4.27/UE_4.27/UE_4.27/Engine/Plugins/FX/Niagara/Source/Niagara/Public/NiagaraFunctionLibrary.h"
+
+
+
+
 // Sets default values
 ABlastRunnerPlayer::ABlastRunnerPlayer()
 {
@@ -49,7 +58,6 @@ ABlastRunnerPlayer::ABlastRunnerPlayer()
 	
 	
 
-	
 
 	
 	
@@ -137,24 +145,120 @@ void ABlastRunnerPlayer::MoveRight(float Axis)
 
 void ABlastRunnerPlayer::Blast()
 {
+	if (ColorTimer >= 3.5)
+	{
+		FVector Origin = GetActorLocation();
+		float Radius = 650.f;
 
-	FHitResult HitResult;
-	//if (BlastRunnerWidget&& ColorTimer>=3.7f)
-	
-		UKismetSystemLibrary::SphereTraceSingle(GetWorld(),GetTargetLocation(this), GetTargetLocation(this) * 500.f, 500.f,
-			ETraceTypeQuery::TraceTypeQuery1, false, ChosetheActor, EDrawDebugTrace::ForDuration, HitResult, true);
-		
+		TArray<FOverlapResult> Overlaps;
+		FCollisionShape Sphere = FCollisionShape::MakeSphere(Radius);
+		FCollisionObjectQueryParams ObjectQuery;
+		ObjectQuery.AddObjectTypesToQuery(ECC_Pawn);
+		ObjectQuery.AddObjectTypesToQuery(ECC_PhysicsBody);
+
+		PlayerDeath();
+		bool bHit = GetWorld()->OverlapMultiByObjectType(
+			Overlaps,
+			Origin,
+			FQuat::Identity,
+			ObjectQuery,
+			Sphere
+		);
+
+		/*DrawDebugSphere(
+			GetWorld(),
+			Origin,        // center
+			Radius,        // radius
+			32,            // segments (higher = smoother circle)
+			FColor::Red,   // color
+			false,         // persistent lines? (true = stays forever, false = disappears)
+			2.0f,          // life time in seconds
+			0,             // depth priority
+			2.0f           // line thickness
+		);
+
+		*/
+		FVector ExplosionLoc = GetActorLocation();
+		ExplosionLoc.Z = 30.f;
 
 
 
+		if (ExplosionEffect)
+		{
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ExplosionEffect, ExplosionLoc, GetActorRotation());
+
+
+		}
+
+
+
+
+		bool found = false;
+		if (bHit)
+		{
+			for (auto& e : Overlaps)
+			{
+				PlayerController = Cast<ABlastRunnerController>(GetController());
+				ABlastRunnerEnenmyBasic* Enenmy = Cast<ABlastRunnerEnenmyBasic>(e.GetActor());
+				if (Enenmy)
+				{
+					score += 10;
+					PlayerController->UpadateScore(score);
+
+					UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+						GetWorld(),
+						EnenmyEffect,
+						Enenmy->GetActorLocation(),
+						Enenmy->GetActorRotation()
+
+
+					);
+
+
+					PlayerController->ClientStartCameraShake(HitCameraShake, 5.f);
+
+
+					Enenmy->Destroy();
+
+					UE_LOG(LogTemp, Error, TEXT("ENEMY IS KILLED!"));
+					found = true;
+				}
+
+
+
+			}
+
+		}
+
+
+		if (!found)
+		{
+			TakeDamage(1.f);
+		}
 		UGameplayStatics::PlaySound2D(GetWorld(), ExploadeSound);
 		ERunnerState::Green;
 		ColorTimer = 0.0;
 		SwitchTORed = 0;
+	}
+}
 
-	
+void ABlastRunnerPlayer::PlayerDeath()
+{
+	if (Life <= 0)
+	{
+		//UGameplayStatics::SetGamePaused(GetWorld(), true);
+		PlayerController = Cast<ABlastRunnerController>(GetController());
+		if (PlayerController)
+		{
 
-	
+			PlayerController->DeathUI();
+			UGameplayStatics::SetGamePaused(GetWorld(), true);
+			
+		}
+	}
+
+
+
 }
 
 void ABlastRunnerPlayer::TimeExploader()
@@ -168,25 +272,17 @@ void ABlastRunnerPlayer::TimeExploader()
 		ColorTimer = 0.0;
 		ERunnerState::Green;
 		
-		
-		
-			Life = FMath::Clamp(Life-=1.f, 0.0f, 4.f);
-			float Percentage = Life / 4;
-			GEngine->AddOnScreenDebugMessage(1, 3, FColor::Red, FString("Fired the function!"));
-			if(CharacterController)
-			CharacterController->UpdateHealth(Percentage);
-		
-
-
+		Blast();
 		return;
 	}
 
 
 	if (ColorTimer >= 3.7f)
 	{
-		BlastRunnerWidget->MakeChargeToYellow();
+		BlastRunnerWidget->MakeChargeToGreen();
 		SwitchTORed = 2;
 		ERunnerState::Yellow;
+		UGameplayStatics::PlaySound2D(GetWorld(), CountDownSound);
 		return;
 	}
 
@@ -197,7 +293,7 @@ void ABlastRunnerPlayer::TimeExploader()
 	ERunnerState::Green;
 
 	BlastRunnerWidget->UpdateUI(percentage);
-	GEngine->AddOnScreenDebugMessage(1, 3, FColor::Purple, FString("PROGRESS UPDATED!"));
+	
 
 }
 
@@ -207,10 +303,19 @@ void ABlastRunnerPlayer::TakeDamage(float Value)
 
 	Life = FMath::Clamp(Life -= Value, 0.0f, 4.f);
 	float Percentage = Life / 4;
-	GEngine->AddOnScreenDebugMessage(1, 3, FColor::Red, FString("Fired the function!"));
+
 	if (CharacterController)
 		CharacterController->UpdateHealth(Percentage);
 
+	
+
+
+}
+
+void ABlastRunnerPlayer::CameraHitShake()
+{
+
+	PlayerController->ClientStartCameraShake(HitCameraShake, 5.f);
 
 }
 

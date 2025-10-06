@@ -13,5 +13,11 @@ UCLASS()
 class BLASTRUNNER_API ABlastRunnerGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
+
+public:
+	//UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "Music")
+//	class UAudioComponent* BackgroundMusic;
+	ABlastRunnerGameModeBase();
+	virtual void BeginPlay() override;
 	
 };

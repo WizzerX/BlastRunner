@@ -77,6 +77,9 @@ public:
 
 	int SwitchTORed = 0;
 
+	void PlayerDeath();
+
+
 public:
 
 	void TimeExploader();
@@ -87,8 +90,35 @@ public:
 
 	void TakeDamage(float Value);
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USoundBase* CountDownSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraShake")
+	TSubclassOf<UCameraShakeBase> HitCameraShake;
+
+	void CameraHitShake();
+
 private:
 class 	ABlastRunnerController* CharacterController;
 
+int score = 0;
+
 TArray<AActor*>ChosetheActor;
+
+UPROPERTY(EditAnywhere, Category = "Effects")
+class UNiagaraSystem* ExplosionEffect;
+
+UPROPERTY(EditAnywhere, Category = "Effects")
+class UNiagaraSystem* EnenmyEffect;
+
+
+
+private:
+
+	ABlastRunnerController* PlayerController;
+
+
+
+
+
 };

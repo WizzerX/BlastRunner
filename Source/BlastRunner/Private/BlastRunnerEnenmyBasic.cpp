@@ -9,6 +9,9 @@
 #include "BlastRunner/Public/BlastRunnerPlayer.h"
 #include "BlastRunner/Public/BlastRunnerController.h"
 #include "Kismet/GameplayStatics.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
+#include "GameFramework/CharacterMovementComponent.h"
 // Sets default values
 ABlastRunnerEnenmyBasic::ABlastRunnerEnenmyBasic()
 {
@@ -29,6 +32,10 @@ ABlastRunnerEnenmyBasic::ABlastRunnerEnenmyBasic()
  EnemyState = EEnemyState::IDLE;
  TargetPawn = nullptr;
  
+
+ GetCharacterMovement()->bEnablePhysicsInteraction = true;
+ 
+ GetCharacterMovement()->PushForceFactor = 500.0f;  // tweak this
 
 
 }
@@ -100,6 +107,10 @@ void ABlastRunnerEnenmyBasic::CheckDistanceToPlayer()
 		EnemyState = EEnemyState::Attack;
 		AttackThePlayer();
 	
+
+
+
+
 		// Stop checking
 		GetWorldTimerManager().ClearTimer(CheckDistanceTimerHandle);
 
@@ -113,16 +124,26 @@ void ABlastRunnerEnenmyBasic::AttackThePlayer()
 	FHitResult HitResult;
 	
 	UKismetSystemLibrary::SphereTraceSingle(GetWorld(), TargetPawn->GetTargetLocation(), TargetPawn->GetTargetLocation() * 500.f, 50.f,
-		ETraceTypeQuery::TraceTypeQuery1, false, ChosetheActor, EDrawDebugTrace::ForDuration, HitResult, true);
+		ETraceTypeQuery::TraceTypeQuery1, false, ChosetheActor, EDrawDebugTrace::None, HitResult, true);
 	ABlastRunnerPlayer* Player = Cast<ABlastRunnerPlayer>(HitResult.GetActor());
 
-	if (Player)
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+		GetWorld(),
+		ExplosionEffect,
+		TargetPawn->GetActorLocation(),
+		TargetPawn->GetActorRotation()
+	);
+	ABlastRunnerController* PC = Cast<ABlastRunnerController>(Player->GetController());
+
+	if (Player && PC)
 	{
 
-		
+		PC->ClientStartCameraShake(HitCameraShake, 5.0f);
 		UE_LOG(LogTemp, Warning, TEXT("Enemy attacking player: %s"), *TargetPawn->GetName());
 		Player->TakeDamage(1.f);
+		Player->PlayerDeath();
 		UGameplayStatics::PlaySound2D(GetWorld(), BlastSound);
+		
 		this->Destroy();
 	}
 	else

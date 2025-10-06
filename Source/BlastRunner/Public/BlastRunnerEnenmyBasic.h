@@ -72,6 +72,9 @@ public:
 	class UPawnSensingComponent* PawnSensingComponent;
 
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraShake")
+	TSubclassOf<UCameraShakeBase> HitCameraShake;
+
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	TArray<AActor*> ChosetheActor;
@@ -80,4 +83,8 @@ public:
 	USoundBase* BlastSound;
 
 	APawn* TargetPawn;
+
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	class UNiagaraSystem* ExplosionEffect;
+
 };
